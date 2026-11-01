@@ -1,0 +1,69 @@
+#define MQ2_PIN 34
+
+#define GREEN_LED 18
+#define YELLOW_LED 19
+#define RED_LED 23
+#define BUZZER 25
+
+#define MODERATE_THRESHOLD 1500
+#define POOR_THRESHOLD 2500
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(YELLOW_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+
+  // Configure buzzer using ESP32 Arduino Core 3.x
+  ledcAttach(BUZZER, 2000, 8);
+  ledcWriteTone(BUZZER, 0);
+
+  analogReadResolution(12);
+
+  Serial.println("================================");
+  Serial.println(" ESP32 AIR QUALITY MONITOR");
+  Serial.println("================================");
+  Serial.println("System initialized successfully");
+  Serial.println();
+}
+
+void loop() {
+  int sensorValue = analogRead(MQ2_PIN);
+
+  // Reset indicators
+  digitalWrite(GREEN_LED, LOW);
+  digitalWrite(YELLOW_LED, LOW);
+  digitalWrite(RED_LED, LOW);
+
+  // Default: buzzer OFF
+  ledcWriteTone(BUZZER, 0);
+
+  Serial.print("MQ-2 Reading: ");
+  Serial.print(sensorValue);
+  Serial.print(" / 4095 | Status: ");
+
+  if (sensorValue >= POOR_THRESHOLD) {
+
+    digitalWrite(RED_LED, HIGH);
+
+    // Activate audible alarm at 2 kHz
+    ledcWriteTone(BUZZER, 2000);
+
+    Serial.println("POOR AIR QUALITY - ALERT!");
+
+  } else if (sensorValue >= MODERATE_THRESHOLD) {
+
+    digitalWrite(YELLOW_LED, HIGH);
+
+    Serial.println("MODERATE - CAUTION");
+
+  } else {
+
+    digitalWrite(GREEN_LED, HIGH);
+
+    Serial.println("NORMAL");
+  }
+
+  delay(1000);
+}
